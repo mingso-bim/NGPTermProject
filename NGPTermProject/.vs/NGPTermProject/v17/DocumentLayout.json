@@ -1,12 +1,71 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\packet.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|solutionrelative:packet.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\networkThread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|solutionrelative:networkThread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\Common.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BBB7A21D-D5E7-4924-9125-88FC89E5F255}|NGPTermProject.vcxproj|solutionrelative:Common.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "networkThread.cpp",
+              "DocumentMoniker": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\networkThread.cpp",
+              "RelativeDocumentMoniker": "networkThread.cpp",
+              "ToolTip": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\networkThread.cpp",
+              "RelativeToolTip": "networkThread.cpp",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAAAFIAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-11-09T04:28:42.795Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "packet.h",
+              "DocumentMoniker": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\packet.h",
+              "RelativeDocumentMoniker": "packet.h",
+              "ToolTip": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\packet.h",
+              "RelativeToolTip": "packet.h",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAAAFAAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-11-09T14:31:51.503Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Common.h",
+              "DocumentMoniker": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\Common.h",
+              "RelativeDocumentMoniker": "Common.h",
+              "ToolTip": "C:\\desktop\\24-2\\NGP\\NGPTermProject\\NGPTermProject\\Common.h",
+              "RelativeToolTip": "Common.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2024-11-09T04:25:52.22Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }
