@@ -8,12 +8,12 @@ class Client
 {
 public:
 	char name[20];
-	int ID;
+	unsigned short ID;
 
 	Client()
 	{
 		*name = NULL;
-		ID = -1;
+		ID = 0;
 	}
 };
 
@@ -53,14 +53,13 @@ int main()
 
 	// 닉네임 입력 받기 (수정 필요)
 	Client client;
-	scanf("%s", client.name);
 
 	// 닉네임 전송
 	retval = send(sock, client.name, sizeof(client.name), 0);
 	if (retval == SOCKET_ERROR) err_display("send - clientName");
 
 	// ID 할당 받기
-	retval = recv(sock, (char*)client.ID, sizeof(client.ID), 0);
+	retval = recv(sock, (char*)&client.ID, sizeof(client.ID), 0);
 	if (retval == SOCKET_ERROR) err_display("receive - clientID");
 
 	while (true)
@@ -69,7 +68,7 @@ int main()
 
 		// 게임 매칭 신호 전송
 		unsigned short matchingStart = GAMESTART;
-		retval = send(sock, (char*)matchingStart, sizeof(matchingStart), 0);
+		retval = send(sock, (char*)&matchingStart, sizeof(matchingStart), 0);
 		if (retval == SOCKET_ERROR) err_display("send - matchingStart");
 
 		// 게임 시작 신호 수신
@@ -82,7 +81,7 @@ int main()
 		// initPacket 수신
 		s_initPacket init;
 
-		retval = send(sock, (char*)&init, sizeof(init), 0);
+		retval = recv(sock, (char*)&init, sizeof(init), 0);
 		if (retval == SOCKET_ERROR) err_display("receive - initPacket");
 
 		while (!gameOver)

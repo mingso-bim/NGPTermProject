@@ -9,13 +9,13 @@ using namespace std;
 #define VICTORY 20041
 #define DEFEAT 20042
 
+#pragma pack(1)
 struct PlayerStatusPacket {
     unsigned short playerId;
 	unsigned short health;
     float posX;
     float posY;
 };
-
 
 struct s_initPacket
 {
@@ -70,7 +70,7 @@ struct s_UIPacket
 
 struct s_playerPacket
 {
-	string s_playerName;
+	char s_playerName[20];
 	unsigned short s_playerID;
 	float s_playerPosX;
 	float s_playerPosY;
@@ -83,7 +83,7 @@ struct s_playerPacket
 
 struct c_playerPacket
 {
-	string c_playerName;
+	char c_playerName[20];
 	unsigned short c_playerID;
 	float c_playerPosX;
 	float c_playerPosY;
@@ -101,8 +101,9 @@ struct c_bulletPacket
 
 struct c_inputPacket
 {
-	string c_key;
+	char c_key[10];
 	float c_mouseX;
 	float c_mouseY;
 	unsigned short c_playerID;
 };
+#pragma pack()

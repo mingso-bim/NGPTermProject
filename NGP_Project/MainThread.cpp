@@ -34,12 +34,12 @@ class Client
 {
 public:
 	char name[20];
-	int ID;
+	unsigned short ID;
 
 	Client()
 	{
 		*name = NULL;
-		ID = -1;
+		ID = 0;
 	}
 };
 
@@ -71,7 +71,8 @@ DWORD WINAPI networkThread(LPVOID arg)
 	if (retval == SOCKET_ERROR) err_display("receive - clientName");
 
 	// ID 할당
-	retval = send(clientSock, (char*)makeID(), sizeof(client.ID), 0);
+	client.ID = makeID();
+	retval = send(clientSock, (char*)&client.ID, sizeof(client.ID), 0);
 	if (retval == SOCKET_ERROR) err_display("send - clientID");
 
 	while (true)
@@ -110,7 +111,7 @@ DWORD WINAPI networkThread(LPVOID arg)
 			sendGameData(clientSock);
 		}
 		// 게임 결과 전송
-		sendResult(clientSock, 0);
+		sendResult(clientSock, VICTORY);
 	}
 }
 
@@ -121,6 +122,8 @@ int makeID()
 
 void receiveGameData(SOCKET s)
 {
+	if (s == INVALID_SOCKET) err_display("invalid socket");
+
 	int retval;
 
 	// c_playerPacket 받기
@@ -141,29 +144,37 @@ void receiveGameData(SOCKET s)
 
 void sendGameData(SOCKET s)
 {
+	if (s == INVALID_SOCKET) err_display("invalid socket");
+
 	int retval;
 
 	s_enemyPacket enemyPacket;
+	memset(&enemyPacket, 1, sizeof(enemyPacket));
 	retval = send(s, (char*)&enemyPacket, sizeof(enemyPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - enemyPacket");
 
 	s_itemPacket itemPacket;
+	memset(&itemPacket, 1, sizeof(itemPacket));
 	retval = send(s, (char*)&itemPacket, sizeof(itemPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - itemPacket");
 
 	s_bulletPacket bulletPacket;
+	memset(&bulletPacket, 1, sizeof(bulletPacket));
 	retval = send(s, (char*)&bulletPacket, sizeof(bulletPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - bulletPacket");
 
 	s_obstaclePacket obstaclePacket;
+	memset(&obstaclePacket, 1, sizeof(obstaclePacket));
 	retval = send(s, (char*)&obstaclePacket, sizeof(obstaclePacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - obstaclePacket");
 
 	s_UIPacket UIPacket;
+	memset(&UIPacket, 1, sizeof(UIPacket));
 	retval = send(s, (char*)&UIPacket, sizeof(UIPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - UIPacket");
 
 	s_playerPacket playerPacket;
+	memset(&playerPacket, 1, sizeof(playerPacket));
 	retval = send(s, (char*)&playerPacket, sizeof(playerPacket), 0);
 	if (retval == SOCKET_ERROR) err_display("send - playerPacket");
 }
