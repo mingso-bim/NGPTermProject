@@ -7,57 +7,34 @@
 #include "Bullet.h"
 #include "Obstacle.h"
 #include "Common.h"
-#include "packet.h"
+#include "Packet.h"
 #include <random>
 #include <vector>
-#include <queue>
-
-
+#include <list>
+#include"Client.h"
+#include "GameThread.h"
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
 using namespace std;
 
-string gameMode = "Menumode";
-int nextClientID = 1;
-string clientName;
+list<Client> waitClientList; // 전역(gameThread 에서 이용하기 위해) 수정필요
+ CRITICAL_SECTION cs;                // 전역으로 Critical Section 선언 //Client 클래스 헤더파일로 분리 
+ int nextID = 1; // 전역 변수 nextID 정의
 
-// 초기화할 객체들( 게임스레드 보고 수정 예정)
-vector<Enemy> enemies = {};
-vector<Obstacle> obstacles = {};
-vector<Bullet> bullets = {};
-vector<Item> items = {};
-vector<Player> players = {};
-
-
-class Client
-{
-public:
-	char name[20];
-	int ID;
-
-	Client()
-	{
-		*name = NULL;
-		ID = -1;
-	}
-};
-
-queue<Client> waitClientList;
-HANDLE hMatchingEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-HANDLE hGameStartEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+//list<Client> waitClientList;
+HANDLE hGameStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 bool gameOver = false;
+//CRITICAL_SECTION cs;
 
-// 랜덤 ID부여
-int makeID();
+
 // 게임 데이터 받기
 void receiveGameData(SOCKET s);
 // 게임 데이터 전송
 void sendGameData(SOCKET s);
 // 게임 결과 전송
 void sendResult(SOCKET s, int result);
-// 초기화함수
-void initialization();
+
 
 
 DWORD WINAPI networkThread(LPVOID arg)
@@ -68,39 +45,68 @@ DWORD WINAPI networkThread(LPVOID arg)
 
 	// 닉네임 받기
 	retval = recv(clientSock, client.name, sizeof(client.name), 0);
-	if (retval == SOCKET_ERROR) err_display("receive - clientName");
+	if (retval == SOCKET_ERROR) {
+		err_display("receive - clientName");
+	}
+	else {
+		cout << "recv - name success - " << client.name << endl;
+	}
 
 	// ID 할당
-	retval = send(clientSock, (char*)makeID(), sizeof(client.ID), 0);
-	if (retval == SOCKET_ERROR) err_display("send - clientID");
-
+	retval = send(clientSock, (char*)&client.ID, sizeof(client.ID), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send - clientID");
+	}
+	else {
+		cout << "send - ID success - " << client.ID << endl;
+	}
 	while (true)
 	{
 		// 매칭 신호 수신
 		unsigned short start;
-		retval = recv(clientSock, (char*)&start, sizeof(start), 0);
+		retval = recv(clientSock, (char*)&start, sizeof(start), MSG_WAITALL);
 		if (retval == SOCKET_ERROR) err_display("receive - c_playetPacket");
-		if (start != GAMESTART) err_display("receive - start");
+		if (start != GAMESTART) {
+			err_display("receive - start");
+		}
+		else {
+			cout << client.ID << " - Matching start" << endl;
+		}
 
-		// 큐에 입장
-		waitClientList.push(client);
+		// 리스트에 입장
+		EnterCriticalSection(&cs);		// 크리티컬섹션으로 다른스레드와 동기화
+		waitClientList.push_back(client);
+		LeaveCriticalSection(&cs);
+		cout << "enter List" << endl;
+		cout << waitClientList.size()<< "개의 클라이언트 대기중" << endl;
+
 
 		// 게임 잡힐 때 까지 대기
 		WaitForSingleObject(hGameStartEvent, INFINITE);
+		waitClientList.remove(client);
+		cout << "매칭 완료" << endl;
 
 		// 게임 시작 신호 전송
 		s_UIPacket gameStart(GAMESTART);
-
 		retval = send(clientSock, (char*)&gameStart, sizeof(gameStart), 0);
-		if (retval == SOCKET_ERROR) err_display("send - s_UIPacket(gameStart)");
+		if (retval == SOCKET_ERROR) {
+			err_display("send - s_UIPacket(gameStart)");
+		}
+		else{
+			cout << "Game start " << endl;
+		}
 
 		// initPacket 전송
 		s_initPacket init;
-		
 		retval = send(clientSock, (char*)&init, sizeof(init), 0);
-		if (retval == SOCKET_ERROR) err_display("send - initPacket");
-
+		if (retval == SOCKET_ERROR) { 
+			err_display("send - initPacket"); 
+		}
+		else {
+			cout << "send - initPacket success - " << client.ID << endl;
+		}
 		// 게임 루프
+		
 		while (!gameOver)
 		{
 			// 게임 데이터 받기
@@ -111,12 +117,10 @@ DWORD WINAPI networkThread(LPVOID arg)
 		}
 		// 게임 결과 전송
 		sendResult(clientSock, 0);
+		
 	}
-}
-
-int makeID()
-{
-	return waitClientList.size() + 1;
+	closesocket(clientSock);
+	nextID--;
 }
 
 void receiveGameData(SOCKET s)
@@ -136,7 +140,18 @@ void receiveGameData(SOCKET s)
 	// c_inputPacket 받기
 	c_inputPacket inputPacket;
 	retval = recv(s, (char*)&inputPacket, sizeof(inputPacket), 0);
-	if (retval == SOCKET_ERROR) err_display("receive - c_inputPacket");
+	if (retval == SOCKET_ERROR) {
+		err_display("receive - c_inputPacket");
+	}
+	else {
+		// 단일 유저로 가정하고 waitClientList의 첫 번째 클라이언트를 사용 수정해야할 부분
+		EnterCriticalSection(&cs);
+		if (!waitClientList.empty()) {
+			waitClientList.front().inputPacket = inputPacket; // 첫 번째 클라이언트의 입력 패킷 저장
+		}
+		LeaveCriticalSection(&cs);
+	}
+	
 }
 
 void sendGameData(SOCKET s)
@@ -179,11 +194,29 @@ void sendResult(SOCKET s, int result)
 
 
 DWORD WINAPI gameThread(LPVOID arg) {
+	cout << "GameThread 생성" << endl;
+	bool Matching = true;
+	while (Matching) {
+		EnterCriticalSection(&cs);
+		if (waitClientList.size() == 1) {
+			cout << "GameThread - Matching finish" << endl;
+			Matching = false;
+		}
+		LeaveCriticalSection(&cs);
+	}
+	SetEvent(hGameStartEvent);
+	cout << "gameThread start" << endl;
 	return 0;
+
+	// GameThread 객체 생성 및 게임 실행
+	SOCKET serverSocket = *(SOCKET*)arg; // 서버 소켓 전달 받기
+	GameThread game(serverSocket);
+	game.run(); // 게임 실행
 }
 
 int main(int argc, char* argv[])
 {
+	InitializeCriticalSection(&cs);
 	int retval;
 
 	WSADATA wsa;
@@ -214,9 +247,12 @@ int main(int argc, char* argv[])
 	SOCKET client_sock;
 	struct sockaddr_in clientaddr;
 	int addrlen;
-	HANDLE hThread;
+	HANDLE hThread_g, hThread;
+	// 게임스레드 생성
+	CreateThread(NULL, 0, gameThread, NULL, 0, NULL);
 
 	while (1) {
+
 		// accept()
 		addrlen = sizeof(clientaddr);
 		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
@@ -236,32 +272,13 @@ int main(int argc, char* argv[])
 		if (hThread == NULL) { closesocket(client_sock); }
 		else { CloseHandle(hThread); }
 
-
-		// 게임스레드 생성
-		if (waitClientList.size() == 3) {
-			gameMode = "PlayMode";
-			initialization();
-			hThread = CreateThread(NULL, 0, gameThread, (LPVOID)client_sock, 0, NULL);
-			SetEvent(hGameStartEvent);
-			if (hThread == NULL) { closesocket(client_sock); }
-			else { CloseHandle(hThread); }
-		}
 	}
 
 	// 소켓 닫기
 	closesocket(listen_sock);
-
+	DeleteCriticalSection(&cs);
 
 	// 윈속 종료
 	WSACleanup();
 	return 0;
-}
-
-
-void initialization() {
-	enemies.clear();
-	obstacles.clear();
-	bullets.clear();
-	items.clear();
-	players.clear();
 }

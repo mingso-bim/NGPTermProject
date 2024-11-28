@@ -2,6 +2,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 // UI ÆĞÅ¶¿ë
@@ -9,9 +10,11 @@ using namespace std;
 #define VICTORY 20041
 #define DEFEAT 20042
 
+
+
 struct PlayerStatusPacket {
-    int playerId;
-    int health;
+    unsigned short playerId;
+	unsigned short health;
     float posX;
     float posY;
 };
@@ -26,7 +29,6 @@ struct s_initPacket
 	unsigned short s_playerMaxHealth;
 	unsigned short s_initialAmmoCount;
 };
-
 
 struct s_enemyPacket
 {
@@ -43,14 +45,26 @@ struct s_itemPacket
 	float s_itemPosX;
 	float s_itemPosY;
 	unsigned short s_itemType;
-};
 
+};
+/*
 struct s_bulletPacket
 {
 	unsigned short s_bulletID;
 	float s_bulletPosX;
 	float s_bulletPosY;
+	bool bulletIsActive;
+};*/
+struct s_bulletPacket {
+	float s_bulletPosX;        // ÃÑ¾Ë À§Ä¡ X
+	float s_bulletPosY;        // ÃÑ¾Ë À§Ä¡ Y
+	float speed;               // ÃÑ¾Ë ¼Óµµ
+	float directionX;          // ÃÑ¾Ë ¹æÇâ X
+	float directionY;          // ÃÑ¾Ë ¹æÇâ Y
+	int damage;                // ÃÑ¾Ë µ¥¹ÌÁö
+	bool isActive;             // ÃÑ¾Ë È°¼º »óÅÂ
 };
+
 
 struct s_obstaclePacket
 {
@@ -103,13 +117,11 @@ struct c_bulletPacket
 struct c_inputPacket
 {
 	string c_key;
+	unsigned short moveLeft;
+	unsigned short moveRight;
+	unsigned short moveUp;
+	unsigned short moveDown;
 	float c_mouseX;
 	float c_mouseY;
 	unsigned short c_playerID;
-<<<<<<< HEAD:NGP_Project/NGP_Project/Packet.h
 };
-
-#pragma pack()
-=======
-};
->>>>>>> parent of cf4c295 (í†µì‹  í…ŒìŠ¤íŠ¸ ë° ìˆ˜ì •):NGP_Project_Client/Packet.h

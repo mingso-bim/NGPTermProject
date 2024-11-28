@@ -9,13 +9,13 @@ using namespace std;
 #define VICTORY 20041
 #define DEFEAT 20042
 
+#pragma pack(1)
 struct PlayerStatusPacket {
-    int playerId;
-    int health;
+    unsigned short playerId;
+	unsigned short health;
     float posX;
     float posY;
 };
-
 
 struct s_initPacket
 {
@@ -26,7 +26,6 @@ struct s_initPacket
 	unsigned short s_playerMaxHealth;
 	unsigned short s_initialAmmoCount;
 };
-
 
 struct s_enemyPacket
 {
@@ -71,7 +70,7 @@ struct s_UIPacket
 
 struct s_playerPacket
 {
-	string s_playerName;
+	char s_playerName[20];
 	unsigned short s_playerID;
 	float s_playerPosX;
 	float s_playerPosY;
@@ -84,7 +83,7 @@ struct s_playerPacket
 
 struct c_playerPacket
 {
-	string c_playerName;
+	char c_playerName[20];
 	unsigned short c_playerID;
 	float c_playerPosX;
 	float c_playerPosY;
@@ -102,14 +101,9 @@ struct c_bulletPacket
 
 struct c_inputPacket
 {
-	string c_key;
+	char c_key[10];
 	float c_mouseX;
 	float c_mouseY;
 	unsigned short c_playerID;
-<<<<<<< HEAD:NGP_Project/NGP_Project/Packet.h
 };
-
 #pragma pack()
-=======
-};
->>>>>>> parent of cf4c295 (통신 테스트 및 수정):NGP_Project_Client/Packet.h
