@@ -97,7 +97,7 @@ DWORD WINAPI networkThread(LPVOID arg)
 
 		// initPacket Àü¼Û
 		s_initPacket init;
-
+		
 		retval = send(clientSock, (char*)&init, sizeof(init), 0);
 		if (retval == SOCKET_ERROR) err_display("send - initPacket");
 
