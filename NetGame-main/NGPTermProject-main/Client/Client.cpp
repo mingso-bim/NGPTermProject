@@ -39,7 +39,7 @@ HWND hSendButton;   // 확인버튼
 HWND hEdit1; // 애디트 컨트롤
 HANDLE hDialogEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-Client client;
+extern Client client;
 
 //void sendGameData(SOCKET s);
 //void receiveGameData(SOCKET s);
@@ -57,7 +57,7 @@ DWORD WINAPI clientThread(LPVOID arg)
         gameframework.sendGameData(serverSocket);
 
         // 4. 주기적인 딜레이 (60FPS 기준)
-       // Sleep(16);
+        Sleep(32);
     }
     // 2. 결과 데이터 수신
     gameframework.receiveResult(serverSocket);
@@ -112,10 +112,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         // 닉네임 전송
         retval = send(sock, client.name, sizeof(client.name), 0);
         if (retval == SOCKET_ERROR) err_display("send - clientName");
+        gameframework.getPlayer()->name = client.name;
 
         // ID 할당 받기
         retval = recv(sock, (char*)&client.ID, sizeof(client.ID), 0);
         if (retval == SOCKET_ERROR) err_display("receive - clientID");
+        gameframework.getPlayer()->ID = client.ID;
     }
 
     HANDLE th = CreateThread(NULL, 0, clientThread, (LPVOID)sock, 0, NULL);

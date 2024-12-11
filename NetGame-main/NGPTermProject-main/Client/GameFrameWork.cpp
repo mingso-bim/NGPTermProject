@@ -14,6 +14,7 @@ extern GameFramework gameframework;
 extern HFONT hFont;
 std::vector<Enemy*> enemies;
 
+Client client;
 
 GameFramework::GameFramework()
     : m_hdcBackBuffer(nullptr),
@@ -38,6 +39,7 @@ GameFramework::GameFramework()
     int mapHeight = mapImage.GetHeight();
 
     player = new Player(mapWidth / 2.0f, mapHeight / 2.0f, 2.0f, 0.2f, this); // gameFramework 포인터 전달
+    players.push_back(player); // players 벡터에 player 추가
     // xPos, yPos, speed, animationSpeed, gameframeworkPtr
     player->SetBounds(mapWidth, mapHeight);
 
@@ -915,9 +917,9 @@ void GameFramework::Draw(HDC hdc) {
 
     mapImage.Draw(m_hdcBackBuffer, -static_cast<int>(offsetX), -static_cast<int>(offsetY));
 
-    for (Player& p : players)
+    for (Player* p : players)
     {
-        p.Draw(m_hdcBackBuffer, offsetX, offsetY);
+        p->Draw(m_hdcBackBuffer, offsetX, offsetY);
     }
     //player->Draw(m_hdcBackBuffer, offsetX, offsetY);
     //player->DrawBoundingBox(m_hdcBackBuffer, offsetX, offsetY);
@@ -1213,8 +1215,8 @@ void GameFramework::sendGameData(SOCKET s)
 
     // player_packet 제작
     c_playerPacket c_player = {};
-    strcpy_s(c_player.c_playerName, clientInfo.name);
-    c_player.c_playerID = clientInfo.ID;
+    strcpy_s(c_player.c_playerName, player->name);
+    c_player.c_playerID = player->ID;
     c_player.c_playerPosX = player->GetX();
     c_player.c_playerPosY = player->GetY();
 
@@ -1308,41 +1310,25 @@ void GameFramework::UpdatePlayerInfo(vector<s_playerPacket> packet)
 {
     for (int i = 0; i < packet.size(); ++i)
     {
-        if (players[i].ID == player->ID)
+        if (players[i]->ID == player->ID)
         {
             player->name = packet[i].s_playerName;
             player->ID = packet[i].s_playerID;
             player->x = packet[i].s_playerPosX;
-            player->y = packet[i].s_playerPosY;
-            player->speed = packet[i].s_playerSpeed;
-            player->health = packet[i].s_playerHealth;
-            player->level = packet[i].s_playerLevel;
-            player->experience = packet[i].s_playerEXP;
-        }
-        players[i].name = packet[i].s_playerName;
-        players[i].ID = packet[i].s_playerID;
-        players[i].x = packet[i].s_playerPosX;
-        players[i].y = packet[i].s_playerPosY;
-        players[i].speed = packet[i].s_playerSpeed;
-        players[i].health = packet[i].s_playerHealth;
-        players[i].level = packet[i].s_playerLevel;
-        players[i].experience = packet[i].s_playerEXP;
+            player->y = packet[i].s_playerPosY;                          
+            player->speed = packet[i].s_playerSpeed;                     
+            player->health = packet[i].s_playerHealth;                   
+            player->level = packet[i].s_playerLevel;                     
+            player->experience = packet[i].s_playerEXP;                  
+        }                                                                
+        players[i]->name = packet[i].s_playerName;                       
+        players[i]->ID = packet[i].s_playerID;                           
+        players[i]->x = packet[i].s_playerPosX;                          
+        players[i]->y = packet[i].s_playerPosY;                          
+        players[i]->speed = packet[i].s_playerSpeed;                     
+        players[i]->health = packet[i].s_playerHealth;                   
+        players[i]->level = packet[i].s_playerLevel;                     
+        players[i]->experience = packet[i].s_playerEXP;
     }
     // isDead 처리 필요
-}
-
-vector<c_bulletPacket> GameFramework::MakeBulletInfo()
-{
-    vector<c_bulletPacket> p;
-    p.resize(firedBullets.size());
-
-    for (int i = 0; i < p.size(); ++i)
-    {
-        p[i].c_playerX = firedBullets[i]->x;
-        p[i].c_playerY = firedBullets[i]->y;
-        p[i].c_targetX = firedBullets[i]->directionX;
-        p[i].c_targetY = firedBullets[i]->directionY;
-    }
-
-    return p;
 }
