@@ -94,15 +94,13 @@ struct s_UIPacket
 
 struct s_playerPacket
 {
-	char s_playerName[20];
 	unsigned short s_playerID;
 	float s_playerPosX;
 	float s_playerPosY;
 	float s_playerSpeed;
 	unsigned short s_playerHealth;
-	unsigned short s_playerLevel;
+	int s_playerLevel;
 	int s_playerEXP;
-	bool s_isPlayerDead;
 };
 
 struct c_playerPacket

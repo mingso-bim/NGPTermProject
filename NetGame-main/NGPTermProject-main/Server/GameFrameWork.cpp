@@ -293,6 +293,7 @@ std::wstring GameFramework::GetUpgradeOptionText(UpgradeOptions option) {
     }
 }
 
+
 void GameFramework::HideUpgradePanel() {
     isShowingUpgradePanel = false;
 }

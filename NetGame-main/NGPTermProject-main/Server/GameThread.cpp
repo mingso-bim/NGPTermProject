@@ -76,6 +76,7 @@ void GameThread::updatePlayerStatus() {
         // 플레이어 상태 업데이트
         player.SetHealth(clientStatus.health);
 
+
         // 업데이트된 상태를 동기화할 패킷 생성
         PlayerStatusPacket updatedStatus;
         updatedStatus.playerId = player.GetID();
@@ -102,6 +103,32 @@ void GameThread::waitUntilNextFrame(const std::chrono::time_point<std::chrono::s
         std::this_thread::sleep_for(std::chrono::duration<float>(FRAME_TIME - elapsed.count()));
     }
 }
+
 void GameThread::stop() {
     gameRunning = false;
 }
+
+vector<PlayerStatusPacket> GameThread::makeSendPlayerPacket()
+{
+    // 작성 필요
+    return vector<PlayerStatusPacket>();
+}
+
+
+
+// s_playerPacket용 업데이트
+//vector<s_playerPacket> GameThread::makePlayerPacket()
+//{
+//    s_playerPacket packet = {};
+//    for (const Player& p : players)
+//    {
+//        packet.s_playerID = p.GetID();
+//        packet.s_playerPosX = p.GetX();
+//        packet.s_playerPosY = p.GetY();
+//        packet.s_playerSpeed = p.speed;
+//        packet.s_playerHealth = p.GetHealth();
+//        packet.s_playerLevel = p.level;
+//        packet.s_playerEXP = p.experience;
+//    }
+//    return vector<s_playerPacket>();
+//}

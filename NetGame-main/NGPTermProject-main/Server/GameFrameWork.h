@@ -169,6 +169,4 @@ private:
 
     bool isBackgroundMusicPlaying;
     bool isMainMenuMusicPlaying;
-
-
 };

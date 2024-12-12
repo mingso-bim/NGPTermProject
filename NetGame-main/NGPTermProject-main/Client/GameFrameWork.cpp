@@ -1243,6 +1243,7 @@ void GameFramework::sendGameData(SOCKET s)
         c_bullet.c_playerY = firedBullet->y;
         c_bullet.c_targetX = firedBullet->directionX;
         c_bullet.c_targetY = firedBullet->directionY;
+        firedBullet = nullptr;
     }
 
     // c_bulletPacket 전송
@@ -1252,57 +1253,54 @@ void GameFramework::sendGameData(SOCKET s)
 
 void GameFramework::receiveGameData(SOCKET s)
 {
-    int retval, dataSize, vSize;
+    int retval{}, dataSize{}, vSize{};
 
-    // s_enemyPacket 수신
-    vector<s_enemyPacket> recv_enemies = {};
-    retval = recv(s, (char*)&dataSize, sizeof(int), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - enemyPacketSize");
-    vSize = dataSize / sizeof(s_enemyPacket);
-    recv_enemies.resize(vSize);
-    retval = recv(s, (char*)recv_enemies.data(), dataSize, 0);
-    if (retval == SOCKET_ERROR) { err_display("recv - enemyPacket"); }
-    // 받은 패킷 gameframework에 적용
-
-
-    // s_itemPacket 수신
-    vector<s_itemPacket> recv_items = {};
-    retval = recv(s, (char*)&dataSize, sizeof(int), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - itemPacketSize");
-    vSize = dataSize / sizeof(s_itemPacket);
-    recv_items.resize(vSize);
-    retval = recv(s, (char*)recv_items.data(), dataSize, 0);
-    if (retval == SOCKET_ERROR) err_display("receive - itemPacket");
-
-    // s_obstaclePacket 수신
-    vector<s_obstaclePacket> recv_obstacles = {};
-    retval = recv(s, (char*)&dataSize, sizeof(int), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - obstaclePacketSize");
-    vSize = dataSize / sizeof(s_obstaclePacket);
-    obstacles.resize(vSize);
-    retval = recv(s, (char*)obstacles.data(), dataSize, 0);
-    if (retval == SOCKET_ERROR) err_display("receive - obstaclePacket");
+    //// s_enemyPacket 수신
+    //vector<s_enemyPacket> recv_enemies = {};
+    //retval = recv(s, (char*)&dataSize, sizeof(int), MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - enemyPacketSize");
+    //vSize = dataSize / sizeof(s_enemyPacket);
+    //recv_enemies.resize(vSize);
+    //retval = recv(s, (char*)recv_enemies.data(), dataSize, MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) { err_display("recv - enemyPacket"); }
+    //// 받은 패킷 gameframework에 적용
 
 
-    // s_bulletPacket 수신
-    vector<s_bulletPacket> recv_bullets = {};
-    retval = recv(s, (char*)&dataSize, sizeof(int), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - bulletPacketSize");
-    vSize = dataSize / sizeof(s_bulletPacket);
-    recv_bullets.resize(vSize);
-    retval = recv(s, (char*)recv_bullets.data(), dataSize, 0);
-    if (retval == SOCKET_ERROR) err_display("receive - bulletPacket");
+    //// s_itemPacket 수신
+    //vector<s_itemPacket> recv_items = {};
+    //retval = recv(s, (char*)&dataSize, sizeof(int), MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - itemPacketSize");
+    //vSize = dataSize / sizeof(s_itemPacket);
+    //recv_items.resize(vSize);
+    //retval = recv(s, (char*)recv_items.data(), dataSize, MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - itemPacket");
+
+    //// s_obstaclePacket 수신
+    //vector<s_obstaclePacket> recv_obstacles = {};
+    //retval = recv(s, (char*)&dataSize, sizeof(int), MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - obstaclePacketSize");
+    //vSize = dataSize / sizeof(s_obstaclePacket);
+    //obstacles.resize(vSize);
+    //retval = recv(s, (char*)obstacles.data(), dataSize, MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - obstaclePacket");
+
+
+    //// s_bulletPacket 수신
+    //vector<s_bulletPacket> recv_bullets = {};
+    //retval = recv(s, (char*)&dataSize, sizeof(int), MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - bulletPacketSize");
+    //vSize = dataSize / sizeof(s_bulletPacket);
+    //recv_bullets.resize(vSize);
+    //retval = recv(s, (char*)recv_bullets.data(), dataSize, MSG_WAITALL);
+    //if (retval == SOCKET_ERROR) err_display("receive - bulletPacket");
 
     // s_playerPacket 수신
-    vector<s_playerPacket> recv_players = {};
-    retval = recv(s, (char*)&dataSize, sizeof(int), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - playerPacketSize");
-    vSize = dataSize / sizeof(s_playerPacket);
-    recv_players.resize(vSize);
-    retval = recv(s, (char*)recv_players.data(), dataSize, 0);
+    vector<PlayerStatusPacket> recv_players = {};
+    recv_players.resize(3);
+    retval = recv(s, (char*)recv_players.data(), sizeof(PlayerStatusPacket) * 3, MSG_WAITALL);
     if (retval == SOCKET_ERROR) err_display("receive - playerPacket");
     
-    UpdatePlayerInfo(recv_players);
+    UpdatePlayerInfoVerMini(recv_players);
 
     cout << "receive game data" << endl;
 }
@@ -1322,7 +1320,6 @@ void GameFramework::UpdatePlayerInfo(vector<s_playerPacket> packet)
     {
         if (players[i]->ID == player->ID)
         {
-            player->name = packet[i].s_playerName;
             player->ID = packet[i].s_playerID;
             player->x = packet[i].s_playerPosX;
             player->y = packet[i].s_playerPosY;                          
@@ -1331,7 +1328,6 @@ void GameFramework::UpdatePlayerInfo(vector<s_playerPacket> packet)
             player->level = packet[i].s_playerLevel;                     
             player->experience = packet[i].s_playerEXP;                  
         }                                                                
-        players[i]->name = packet[i].s_playerName;                       
         players[i]->ID = packet[i].s_playerID;                           
         players[i]->x = packet[i].s_playerPosX;                          
         players[i]->y = packet[i].s_playerPosY;                          
@@ -1341,4 +1337,21 @@ void GameFramework::UpdatePlayerInfo(vector<s_playerPacket> packet)
         players[i]->experience = packet[i].s_playerEXP;
     }
     // isDead 처리 필요
+}
+
+void GameFramework::UpdatePlayerInfoVerMini(vector<PlayerStatusPacket> packet)
+{
+    for (int i = 0; i < 3; ++i)
+    {
+        if (packet[i].playerId == player->ID)
+        {
+            player->x = packet[i].posX;
+            player->y = packet[i].posY;
+            player->health = packet[i].health;
+        }
+        players[i]->x = packet[i].posX;
+        players[i]->y = packet[i].posY;
+        players[i]->health = packet[i].health;
+        players[i]->ID = packet[i].playerId;
+    }
 }

@@ -36,6 +36,9 @@ private:
     std::vector<Bullet> bullets;
     std::vector<Obstacle*> obstacles; 
 
+    // 패킷 생성
+    vector<PlayerStatusPacket> makeSendPlayerPacket();
+
     // 서버 통신 관련 소켓
     SOCKET serverSocket; // 수정된 부분
 };

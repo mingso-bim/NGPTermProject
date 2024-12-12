@@ -32,7 +32,7 @@ vector<s_enemyPacket> enemies = {};
 vector<s_obstaclePacket> obstacles = {};
 vector<s_bulletPacket> bullets = {};
 vector<s_itemPacket> items = {};
-vector<s_playerPacket> players = {};
+vector<s_playerPacket> sendPlayers = {};
 
 vector<c_bulletPacket> c_bullets = {};
 c_bulletPacket recv_bullet;
@@ -119,7 +119,7 @@ DWORD WINAPI networkThread(LPVOID arg)
 			cout << "Game In " << endl;
 
 			// 2. 게임 데이터 전송
-			//sendGameData(clientSock);
+			sendGameData(clientSock);
 
 			// 1. 클라이언트로부터 데이터 수신
 			receiveGameData(clientSock);
@@ -141,39 +141,37 @@ void sendGameData(SOCKET s)
 
 	int retval, dataSize;
 
-	// s_enemyPacket 전송
-	dataSize = enemies.size() * sizeof(s_enemyPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - enemyPacketSize"); }
-	retval = send(s, (char*)enemies.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - enemyPacket"); }
+	//// s_enemyPacket 전송
+	//dataSize = enemies.size() * sizeof(s_enemyPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - enemyPacketSize"); }
+	//retval = send(s, (char*)enemies.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - enemyPacket"); }
 
-	// s_itemPacket 전송
-	dataSize = items.size() * sizeof(s_itemPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - itemPacketSize"); }
-	retval = send(s, (char*)items.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - itemPacket"); }
+	//// s_itemPacket 전송
+	//dataSize = items.size() * sizeof(s_itemPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - itemPacketSize"); }
+	//retval = send(s, (char*)items.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - itemPacket"); }
 
-	// s_obstaclePacket 전송
-	dataSize = obstacles.size() * sizeof(s_obstaclePacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - obstaclePacketSize"); }
-	retval = send(s, (char*)obstacles.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - obstaclePacket"); }
+	//// s_obstaclePacket 전송
+	//dataSize = obstacles.size() * sizeof(s_obstaclePacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - obstaclePacketSize"); }
+	//retval = send(s, (char*)obstacles.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - obstaclePacket"); }
 
-	// s_bulletPacket 전송
-	dataSize = bullets.size() * sizeof(s_bulletPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - bulletPacketSize"); }
-	retval = send(s, (char*)bullets.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - bulletPacket"); }
+	//// s_bulletPacket 전송
+	//dataSize = bullets.size() * sizeof(s_bulletPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - bulletPacketSize"); }
+	//retval = send(s, (char*)bullets.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - bulletPacket"); }
 
 	// s_playerPacket 전송
-	dataSize = players.size() * sizeof(s_playerPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - playerPacketSize"); }
-	retval = send(s, (char*)players.data(), dataSize, 0);
+	dataSize = sizeof(PlayerStatusPacket) * 3;
+	retval = send(s, (char*)sendPlayers.data(), dataSize, 0);
 	if (retval == SOCKET_ERROR) { err_display("send - playerPacket"); }
 	cout << "send game data" << endl;
 }
