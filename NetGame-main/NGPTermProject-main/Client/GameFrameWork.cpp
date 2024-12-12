@@ -156,10 +156,10 @@ void GameFramework::ResetGame() {
     StartCreateObstacles();
     CreateObstacles(0);
 
-    // initPacket 수신
-    s_initPacket init;
-    retval = send(sock, (char*)&init, sizeof(init), 0);
-    if (retval == SOCKET_ERROR) err_display("receive - initPacket");
+     //initPacket 수신
+    //s_initPacket init;
+    //retval = send(sock, (char*)&init, sizeof(init), 0);
+    //if (retval == SOCKET_ERROR) err_display("receive - initPacket");
 
 }
 
@@ -271,7 +271,7 @@ void GameFramework::HandleMenuInput(WPARAM wParam) {
                 }
             }*/
             ToggleMainMenu(); // This will also stop the music
-            ResetGame();
+            //ResetGame();
 
         }
         else if (selectedMenuItem == 1) {

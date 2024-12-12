@@ -92,7 +92,7 @@ struct c_playerPacket
 };
 
 struct c_bulletPacket
-{
+{	
 	float c_playerX;
 	float c_playerY;
 	float c_targetX;

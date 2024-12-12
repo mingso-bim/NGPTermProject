@@ -120,9 +120,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         gameframework.getPlayer()->ID = client.ID;
     }
 
-    HANDLE th = CreateThread(NULL, 0, clientThread, (LPVOID)sock, 0, NULL);
-    if (th == NULL) closesocket(sock);
-    else CloseHandle(th);
+   
 
     // 게임 매칭 신호 전송
     unsigned short matchingStart = GAMESTART;
@@ -157,7 +155,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     {
         return FALSE;
     }
-
+    HANDLE th = CreateThread(NULL, 0, clientThread, (LPVOID)sock, 0, NULL);
+    if (th == NULL) closesocket(sock);
+    else CloseHandle(th);
 
     while (true)
     {

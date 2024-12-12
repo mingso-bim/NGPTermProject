@@ -125,7 +125,7 @@ DWORD WINAPI networkThread(LPVOID arg)
 			receiveGameData(clientSock);
 
 			// 프레임 고정
-			Sleep(32);
+			//Sleep(32);
 		}
 		// 게임 결과 전송
 		sendResult(clientSock, 0);
@@ -187,7 +187,7 @@ void receiveGameData(SOCKET s)
 	// c_playerPacket 받기
 	c_playerPacket c_player = {};
 
-	retval = recv(s, (char*)&c_player, sizeof(c_playerPacket), 0);
+	retval = recv(s, (char*)&c_player, sizeof(c_playerPacket), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) err_display("receive - c_playetPacket");
 
 	std::cout << "[LOG] Player Packet Received: Name=" << c_player.c_playerName
@@ -196,7 +196,7 @@ void receiveGameData(SOCKET s)
 		<< ", PosY=" << c_player.c_playerPosY << std::endl;
 
 	// c_bulletPacket 받기
-	retval = recv(s, (char*)&recv_bullet, sizeof(c_bulletPacket), 0);
+	retval = recv(s, (char*)&recv_bullet, sizeof(c_bulletPacket), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) err_display("receive - c_bulletPacket");
 
 	std::cout << "[LOG] Bullet Packet Received: Name=" << recv_bullet.c_playerX
