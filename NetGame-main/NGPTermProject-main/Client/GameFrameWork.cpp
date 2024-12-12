@@ -314,7 +314,9 @@ void GameFramework::ShowUpgradePanel() {
 
     // 랜덤으로 업그레이드 항목 선택
     std::vector<UpgradeOptions> allUpgrades = { MaxHp, MaxAmmo, AddSpeed, UpgradeGun };
-    std::random_shuffle(allUpgrades.begin(), allUpgrades.end());
+    std::random_device rd; // 하드웨어 랜덤 넘버 생성기
+    std::mt19937 gen(rd()); // Mersenne Twister 엔진
+    std::shuffle(allUpgrades.begin(), allUpgrades.end(), gen);
     upgradeOptions[0] = allUpgrades[0];
     upgradeOptions[1] = allUpgrades[1];
 
@@ -1215,10 +1217,18 @@ void GameFramework::sendGameData(SOCKET s)
 
     // player_packet 제작
     c_playerPacket c_player = {};
-    strcpy_s(c_player.c_playerName, player->name);
-    c_player.c_playerID = player->ID;
-    c_player.c_playerPosX = player->GetX();
-    c_player.c_playerPosY = player->GetY();
+
+    if (player != nullptr)
+    {
+        if (player->name != nullptr)
+        {
+            strncpy_s(c_player.c_playerName, player->name, strlen(player->name));
+            c_player.c_playerName[sizeof(c_player.c_playerName) - 1] = '\0';
+        }
+        c_player.c_playerID = player->ID;
+        c_player.c_playerPosX = player->GetX();
+        c_player.c_playerPosY = player->GetY();
+    }
 
     // c_playerPacket 전송
     retval = send(s, (char*)&c_player, sizeof(c_playerPacket), 0);
