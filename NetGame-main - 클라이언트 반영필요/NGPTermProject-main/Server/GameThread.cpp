@@ -6,8 +6,10 @@
 #include "stdafx.h"
 #include  "list"
 #include "Client.h"
-std::vector<PlayerStatusPacket> PlayerStatus;  // 서버 패킷 리스트 선언
+#include<vector>
 
+//std::vector<c_playerPacket> sharedPlayerPackets;
+std::vector<c_bulletPacket> sharedBulletPackets = {};
 extern CRITICAL_SECTION cs;         // Critical Section 전역 변수 정의
 // 30FPS 기준
 #define FRAME_TIME 0.033f
@@ -37,60 +39,61 @@ void GameThread::run() {
     //3. collisionAction
        //cout << "updatePlayerStatus()" << endl;
        //updatePlayerStatus();
+       //updateBulletStatus();
 
+       // updateEnemy(0.016f);
+        for (auto player : players) {
+           // SpawnEnemy(0.016f, player);
+        }
+       // cout << enemies.size() << "개의 enemy spawn" << endl;
 
+       //Sleep(32);
    
         waitUntilNextFrame(frameStartTime);
     }
 }
-
-void GameThread::updatePlayerStatus() {
-    EnterCriticalSection(&cs); // 공유 자원 접근 동기화
-
-    // 플레이어 상태 업데이트 및 충돌 체크
-    for (auto& player : players) {
-        // 클라이언트로부터 받은 상태 정보로 위치 업데이트
-        PlayerStatusPacket clientStatus = player.GetReceivedStatus();
-        float newX = clientStatus.posX;
-        float newY = clientStatus.posY;
-
-        // 다른 플레이어 리스트 생성 (현재 플레이어 제외)
-        std::vector<Player*> otherPlayers;
-        for (auto& other : players) {
-            if (&player != &other) { // 자기 자신 제외
-                otherPlayers.push_back(&other);
-            }
-        }
-
-        // 충돌 체크
-        bool collision = player.CheckCollision(newX, newY, obstacles, otherPlayers);
-        if (!collision) {
-            // 충돌이 없으면 위치 업데이트
-            player.SetPosition(newX, newY);
-        }
-        else {
-            // 충돌이 있으면 예외 처리 (예: 위치 롤백, 데미지 적용 등)
-            player.TakeDamage(1);
-        }
-
-        // 플레이어 상태 업데이트
-        player.SetHealth(clientStatus.health);
-
-
-        // 업데이트된 상태를 동기화할 패킷 생성
-        PlayerStatusPacket updatedStatus;
-        updatedStatus.playerId = player.GetID();
-        updatedStatus.posX = player.GetX();
-        updatedStatus.posY = player.GetY();
-        updatedStatus.health = player.GetHealth();
-
-        // 서버 패킷 리스트에 추가 (클라이언트로 전송 준비)
-        PlayerStatus.push_back(updatedStatus);
-    }
-
-    LeaveCriticalSection(&cs); // 동기화 종료
-}
-
+//
+//id GameThread::updatePlayerStatus() {
+//  EnterCriticalSection(&cs); // 동기화
+//  for (const auto& c_player : receivedPlayerPackets) {
+//      s_playerPacket s_player = {};
+//      s_player.s_playerID = c_player.c_playerID;
+//      s_player.s_playerPosX = c_player.c_playerPosX;
+//      s_player.s_playerPosY = c_player.c_playerPosY;
+//
+//      
+//      sendPlayers.push_back(s_player); // 전역 벡터에 추가
+//      std::cout 
+//          << "[LOG(GameTread)] ID=" << s_player.s_playerID
+//          << ", PosX=" << s_player.s_playerPosX
+//          << ", PosY=" << s_player.s_playerPosY << std::endl;
+//      
+//  }
+//  receivedPlayerPackets.clear(); // 처리한 데이터
+//  LeaveCriticalSection(&cs); // 동기화 해제
+//
+//
+//id GameThread::updateBulletStatus()
+//
+//  EnterCriticalSection(&cs); // 동기화
+//  for (const auto& c_bullet : receivedBulletPackets) {
+//      s_bulletPacket s_bullet = {};
+//      s_bullet.s_playerX = c_bullet.c_playerX;
+//      s_bullet.s_playerY = c_bullet.c_playerY;
+//      s_bullet.s_targetX = c_bullet.c_targetX;
+//      s_bullet.s_targetY = c_bullet.c_targetY;
+//
+//      // 업데이트된 s_bulletPacket을 bullets 벡터에 추가
+//      Sendbullets.push_back(s_bullet);
+//
+//      std::cout << "[LOG(GameThread)] Bullet Packet Received: PlayerX=" << s_bullet.s_playerX
+//          << ", PlayerY=" << s_bullet.s_playerY
+//          << ", DirX=" << s_bullet.s_targetX
+//          << ", DirY=" << s_bullet.s_targetY << std::endl;
+//  }
+//  receivedBulletPackets.clear(); // 처리한 데이터 제거
+//  LeaveCriticalSection(&cs); // 동기화 해제
+//
 
 
 
@@ -132,3 +135,94 @@ vector<PlayerStatusPacket> GameThread::makeSendPlayerPacket()
 //    }
 //    return vector<s_playerPacket>();
 //}
+
+
+// enemy 생성
+
+void GameThread::SpawnEnemy(float frameTime, Player player) {
+    enemySpawnTimer += frameTime;
+    if (enemySpawnTimer >= enemySpawnInterval) {
+        for (int i = 0; i < 10; i++) {
+            SpawnBrainMonster(player);
+            SpawnEyeMonster(player);
+        }
+        enemySpawnTimer = 0.0f;
+    }
+
+    bigBoomerSpawnTimer += frameTime;
+    if (bigBoomerSpawnTimer >= bigBoomerSpawnInterval) {
+        SpawnBigBoomer(player);
+        SpawnBigBoomer(player);
+        SpawnBigBoomer(player);
+        bigBoomerSpawnTimer = 0.0f;
+    }
+
+    lampreySpawnTimer += frameTime;
+    if (lampreySpawnTimer >= lampreySpawnInterval) {
+        SpawnLamprey(player);
+        SpawnLamprey(player);
+        lampreySpawnTimer = 0.0f;
+    }
+}
+
+void GameThread::SpawnBrainMonster(Player player) {
+    float spawnRadius = 600.0f;
+
+    float angle = (rand() % 360) * 3.14159265358979323846 / 180.0;
+    float spawnX = player.GetX() + spawnRadius * cos(angle);
+    float spawnY = player.GetY() + spawnRadius * sin(angle);
+
+    enemies.push_back(new BrainMonster(player.GetID(), spawnX, spawnY, 5.0f));
+}
+
+void GameThread::SpawnEyeMonster(Player player) {
+    float spawnRadius = 600.0f;
+
+    float angle = (rand() % 360) * 3.14159265358979323846 / 180.0;
+    float spawnX = player.GetX() + spawnRadius * cos(angle);
+    float spawnY = player.GetY() + spawnRadius * sin(angle);
+
+    enemies.push_back(new EyeMonster(spawnX, spawnY, 5.0f));
+}
+
+void GameThread::SpawnBigBoomer(Player player) {
+    float spawnRadius = 600.0f;
+
+    float angle = (rand() % 360) * 3.14159265358979323846 / 180.0;
+    float spawnX = player.GetX() + spawnRadius * cos(angle);
+    float spawnY = player.GetY() + spawnRadius * sin(angle);
+
+    enemies.push_back(new BigBoomer(spawnX, spawnY, 5.0f));
+}
+
+void GameThread::SpawnLamprey(Player player) {
+    float spawnRadius = 600.0f;
+
+    for (int i = 0; i < 2; ++i) {
+        float angle = (rand() % 360) * 3.14159265358979323846 / 180.0;
+        float spawnX = player.GetX() + spawnRadius * cos(angle);
+        float spawnY = player.GetY() + spawnRadius * sin(angle);
+
+        enemies.push_back(new Lamprey(spawnX, spawnY, 5.0f));
+    }
+}
+
+
+void GameThread::updateEnemy(float frameTime) {
+    auto enemyIter = enemies.begin();
+    while (enemyIter != enemies.end()) {
+        Enemy* enemy = *enemyIter;
+        for (auto player : players) {
+            if (player.GetID() == enemy->GetAimPlayerID()) {
+                enemy->Update(frameTime, player.GetX(), player.GetY(), obstacles);
+            }
+        }
+        if (enemy->IsDead()) {
+            delete enemy;
+            enemyIter = enemies.erase(enemyIter);
+        }
+        else {
+            ++enemyIter;
+        }
+    }
+}

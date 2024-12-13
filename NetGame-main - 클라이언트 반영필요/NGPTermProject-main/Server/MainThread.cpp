@@ -17,7 +17,8 @@
 #define BUFSIZE    512
 
 using namespace std;
-
+extern std::vector<c_playerPacket> sharedPlayerPackets(3);
+extern std::vector<c_bulletPacket> sharedBulletPackets;
 list<c_inputPacket> sharedInputList;
 list<Client> waitClientList; // 전역(gameThread 에서 이용하기 위해) 수정필요
  CRITICAL_SECTION cs;                // 전역으로 Critical Section 선언 //Client 클래스 헤더파일로 분리 
@@ -28,11 +29,7 @@ HANDLE hGameStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 bool gameOver = false;
 //CRITICAL_SECTION cs;
 
-vector<s_enemyPacket> enemies = {};
-vector<s_obstaclePacket> obstacles = {};
-vector<s_bulletPacket> bullets = {};
-vector<s_itemPacket> items = {};
-vector<s_playerPacket> sendPlayers = {};
+
 
 vector<c_bulletPacket> c_bullets = {};
 c_bulletPacket recv_bullet;
@@ -45,7 +42,7 @@ void receiveGameData(SOCKET s);
 void sendGameData(SOCKET s);
 // 게임 결과 전송
 void sendResult(SOCKET s, int result);
-
+void initializePlayerPackets();
 
 
 DWORD WINAPI networkThread(LPVOID arg)
@@ -100,17 +97,23 @@ DWORD WINAPI networkThread(LPVOID arg)
 
 		
 
+		EnterCriticalSection(&cs); // 동기화
+		initializePlayerPackets();
+		// 플레이어 데이터 전송
+		for (const auto& player : sharedPlayerPackets) {
+			int retval = send(clientSock, (char*)&player, sizeof(c_playerPacket), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("send - playerPacket");
+				LeaveCriticalSection(&cs);
+				//return;
+			}
 
-		// initPacket 전송
-		
-		s_initPacket init;
-		retval = send(clientSock, (char*)&init, sizeof(init), 0);
-		if (retval == SOCKET_ERROR) { 
-			err_display("send - initPacket"); 
+			std::cout << "[LOG(Server)] Sent Player Packet: ID=" << player.c_playerID
+				<< ", PosX=" << player.c_playerPosX
+				<< ", PosY=" << player.c_playerPosY << std::endl;
 		}
-		else {
-			cout << "send - initPacket success - " << client.ID << endl;
-		}
+
+		LeaveCriticalSection(&cs); // 동기화 해제
 		
 		// 게임 루프
 		
@@ -118,14 +121,15 @@ DWORD WINAPI networkThread(LPVOID arg)
 		{
 			cout << "Game In " << endl;
 
-			// 2. 게임 데이터 전송
+			
 			sendGameData(clientSock);
-
 			// 1. 클라이언트로부터 데이터 수신
 			receiveGameData(clientSock);
+			// 2. 게임 데이터 전송
+			
 
 			// 프레임 고정
-			//Sleep(32);
+			Sleep(32);
 		}
 		// 게임 결과 전송
 		sendResult(clientSock, 0);
@@ -141,39 +145,82 @@ void sendGameData(SOCKET s)
 
 	int retval, dataSize;
 
-	// s_enemyPacket 전송
-	dataSize = enemies.size() * sizeof(s_enemyPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - enemyPacketSize"); }
-	retval = send(s, (char*)enemies.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - enemyPacket"); }
+	//// s_enemyPacket 전송
+	//dataSize = enemies.size() * sizeof(s_enemyPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - enemyPacketSize"); }
+	//retval = send(s, (char*)enemies.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - enemyPacket"); }
 
-	// s_itemPacket 전송
-	dataSize = items.size() * sizeof(s_itemPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - itemPacketSize"); }
-	retval = send(s, (char*)items.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - itemPacket"); }
+	//// s_itemPacket 전송
+	//dataSize = items.size() * sizeof(s_itemPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - itemPacketSize"); }
+	//retval = send(s, (char*)items.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - itemPacket"); }
 
-	// s_obstaclePacket 전송
-	dataSize = obstacles.size() * sizeof(s_obstaclePacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - obstaclePacketSize"); }
-	retval = send(s, (char*)obstacles.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - obstaclePacket"); }
+	//// s_obstaclePacket 전송
+	//dataSize = obstacles.size() * sizeof(s_obstaclePacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - obstaclePacketSize"); }
+	//retval = send(s, (char*)obstacles.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - obstaclePacket"); }
 
-	// s_bulletPacket 전송
-	dataSize = bullets.size() * sizeof(s_bulletPacket);
-	retval = send(s, (char*)&dataSize, sizeof(int), 0);
-	if (retval == SOCKET_ERROR) { err_display("send - bulletPacketSize"); }
-	retval = send(s, (char*)bullets.data(), dataSize, 0);
-	if (retval == SOCKET_ERROR) { err_display("send - bulletPacket"); }
+	//// s_bulletPacket 전송
+	//dataSize = bullets.size() * sizeof(s_bulletPacket);
+	//retval = send(s, (char*)&dataSize, sizeof(int), 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - bulletPacketSize"); }
+	//retval = send(s, (char*)bullets.data(), dataSize, 0);
+	//if (retval == SOCKET_ERROR) { err_display("send - bulletPacket"); }
 
-	//// s_playerPacket 전송
+	EnterCriticalSection(&cs); // 동기화
+
+	const int fixedBulletCount = 5; // 총알 데이터 개수를 고정
+	std::vector<c_bulletPacket> fixedBulletPackets(fixedBulletCount);
+
+	// 기존 데이터를 복사
+	for (int i = 0; i < sharedBulletPackets.size() && i < fixedBulletCount; ++i) {
+		fixedBulletPackets[i] = sharedBulletPackets[i];
+	}
+
+	// 고정된 크기로 전송
+	 dataSize = fixedBulletCount * sizeof(c_bulletPacket);
+	 retval = send(s, (char*)fixedBulletPackets.data(), dataSize, 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send - bulletPacket");
+		LeaveCriticalSection(&cs);
+		return;
+	}
+
+	std::cout << "[LOG(Server)] Sent Bullet Packet X: " << fixedBulletPackets[0].c_playerX 
+		<< " y : " << fixedBulletPackets[0].c_playerY<< std::endl;
+
+	sharedBulletPackets.clear(); // 기존 벡터 초기화
+	LeaveCriticalSection(&cs); // 동기화 해제
+
+	
+	// s_playerPacket 전송
 	//dataSize = sizeof(PlayerStatusPacket) * 3;
 	//retval = send(s, (char*)sendPlayers.data(), dataSize, 0);
 	//if (retval == SOCKET_ERROR) { err_display("send - playerPacket"); }
 	//cout << "send game data" << endl;
+	EnterCriticalSection(&cs); // 동기화
+
+	// 플레이어 데이터 전송
+	for (const auto& player : sharedPlayerPackets) {
+		int retval = send(s, (char*)&player, sizeof(c_playerPacket), 0);
+		if (retval == SOCKET_ERROR) {
+			err_display("send - playerPacket");
+			LeaveCriticalSection(&cs);
+			return;
+		}
+
+		std::cout << "[LOG(Server)] Sent Player Packet: ID=" << player.c_playerID
+			<< ", PosX=" << player.c_playerPosX
+			<< ", PosY=" << player.c_playerPosY << std::endl;
+	}
+
+	LeaveCriticalSection(&cs); // 동기화 해제
 }
 
 void receiveGameData(SOCKET s)
@@ -188,17 +235,38 @@ void receiveGameData(SOCKET s)
 	retval = recv(s, (char*)&c_player, sizeof(c_playerPacket), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) err_display("receive - c_playetPacket");
 
+
+	EnterCriticalSection(&cs); // 동기화
+
+	// ID에 맞는 데이터 업데이트
+	if (c_player.c_playerID >= 1 && c_player.c_playerID <= 3) {
+		sharedPlayerPackets[c_player.c_playerID - 1] = c_player; // ID에 맞게 갱신
+		std::cout << "[LOG(Server)] Updated Player Packet: ID=" << c_player.c_playerID
+			<< ", PosX=" << c_player.c_playerPosX
+			<< ", PosY=" << c_player.c_playerPosY << std::endl;
+	}
+	else {
+		std::cout << "[LOG(Server)] Invalid Player Packet ID: " << c_player.c_playerID << std::endl;
+	}
+
+	LeaveCriticalSection(&cs); // 동기화 해제
 	std::cout << "[LOG] Player Packet Received: Name=" << c_player.c_playerName
 		<< ", ID=" << c_player.c_playerID
 		<< ", PosX=" << c_player.c_playerPosX
 		<< ", PosY=" << c_player.c_playerPosY << std::endl;
 
+
+	c_bulletPacket recv_bullet = {};
 	// c_bulletPacket 받기
 	retval = recv(s, (char*)&recv_bullet, sizeof(c_bulletPacket), MSG_WAITALL);
 	if (retval == SOCKET_ERROR) err_display("receive - c_bulletPacket");
 
-	std::cout << "[LOG] Bullet Packet Received: Name=" << recv_bullet.c_playerX
-		<< ", ID=" << recv_bullet.c_playerY
+	EnterCriticalSection(&cs); // 동기화
+	sharedBulletPackets.push_back(recv_bullet); // 새로운 bullet 추가
+	LeaveCriticalSection(&cs); // 동기화 해제
+
+	std::cout << "[LOG] Bullet Packet Received: PlayerX=" << recv_bullet.c_playerX
+		<< ", PlayerY=" << recv_bullet.c_playerY
 		<< ", PosX=" << recv_bullet.c_targetX
 		<< ", PosY=" << recv_bullet.c_targetY << std::endl;
 
@@ -221,7 +289,7 @@ DWORD WINAPI gameThread(LPVOID arg) {
 	bool Matching = true;
 	while (Matching) {
 		EnterCriticalSection(&cs);
-		if (waitClientList.size() == 1) {
+		if (waitClientList.size() == 2) {
 			std::cout << "GameThread - Matching finish" << std::endl;
 			Matching = false;
 		}
@@ -307,4 +375,15 @@ int main(int argc, char* argv[])
 	// 윈속 종료
 	WSACleanup();
 	return 0;
+}
+void initializePlayerPackets() {
+	for (int i = 0; i < 3; ++i) {
+		sharedPlayerPackets[i].c_playerID = i + 1; // ID: 1, 2, 3
+		sharedPlayerPackets[i].c_playerPosX = 4800;
+		sharedPlayerPackets[i].c_playerPosY = 4800;
+
+		std::cout << "[LOG(Server)] Initialized Player Packet: ID=" << sharedPlayerPackets[i].c_playerID
+			<< ", PosX=" << sharedPlayerPackets[i].c_playerPosX
+			<< ", PosY=" << sharedPlayerPackets[i].c_playerPosY << std::endl;
+	}
 }

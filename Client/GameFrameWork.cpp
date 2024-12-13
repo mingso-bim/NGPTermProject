@@ -3,6 +3,7 @@
 #include <random>
 #include <mmsystem.h>
 #include <string>
+#include <algorithm>
 
 #include "Packet.h"
 #include "ErrDisplay.h"
@@ -1318,7 +1319,7 @@ void GameFramework::receiveGameData(SOCKET s)
         }
     }
     
-    //UpdatePlayerInfoVerMini(recv_players);
+    UpdatePlayerInfo(recvPlayers);
 
     //cout << "receive game data" << endl;
 }
@@ -1332,41 +1333,62 @@ void GameFramework::receiveResult(SOCKET s)
     if (retval == SOCKET_ERROR) err_display("receive - UIPacket");
 }
 
-void GameFramework::UpdatePlayerInfo(vector<s_playerPacket> packet)
+void GameFramework::UpdatePlayerInfo(vector<c_playerPacket> packet)
 {
-    for (int i = 0; i < packet.size(); ++i)
-    {
-        if (players[i]->ID == player->ID)
-        {
-            player->ID = packet[i].s_playerID;
-            player->x = packet[i].s_playerPosX;
-            player->y = packet[i].s_playerPosY;                          
-              
-        }                                                                
-        players[i]->ID = packet[i].s_playerID;                           
-        players[i]->x = packet[i].s_playerPosX;                          
-        players[i]->y = packet[i].s_playerPosY;                          
-
-    }
-    // isDead 처리 필요
-}
-
-void GameFramework::UpdatePlayerInfoVerMini(vector<PlayerStatusPacket> packet)
-{
+    int idx = 1;
     for (int i = 0; i < 3; ++i)
     {
-        if (packet[i].playerId == player->ID)
+        if (packet[i].c_playerID == players[0]->ID) continue;
+        else
         {
-            player->x = packet[i].posX;
-            player->y = packet[i].posY;
-            player->health = packet[i].health;
+            players[idx]->x = packet[i].c_playerPosX;
+            players[idx]->y = packet[i].c_playerPosY;
+            idx++;
         }
-        players[i]->x = packet[i].posX;
-        players[i]->y = packet[i].posY;
-        players[i]->health = packet[i].health;
-        players[i]->ID = packet[i].playerId;
     }
+    /*for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (packet[i].c_playerID == players[j]->ID)
+            {
+                players[j]->x = packet[i].c_playerPosX;
+                players[j]->y = packet[i].c_playerPosY;
+            }
+        }
+    }*/
+    //for (int i = 0; i < 3; ++i)
+    //{
+    //    auto iter = find_if(players.begin(), players.end(), [packet, i](Player* p)
+    //        {
+    //            return packet[i].c_playerID == p->ID;
+    //        });
+    //    
+    //    if (iter != players.end()) 
+    //    {
+    //        Player* foundPlayer = *iter;
+    //        foundPlayer->x = packet[i].c_playerPosX;
+    //        foundPlayer->y = packet[i].c_playerPosY;
+    //    }
+    //}
 }
+
+//void GameFramework::UpdatePlayerInfoVerMini(vector<PlayerStatusPacket> packet)
+//{
+//    for (int i = 0; i < 3; ++i)
+//    {
+//        if (packet[i].playerId == player->ID)
+//        {
+//            player->x = packet[i].posX;
+//            player->y = packet[i].posY;
+//            player->health = packet[i].health;
+//        }
+//        players[i]->x = packet[i].posX;
+//        players[i]->y = packet[i].posY;
+//        players[i]->health = packet[i].health;
+//        players[i]->ID = packet[i].playerId;
+//    }
+//}
 void GameFramework::UpdateBulletsFromServer(const std::vector<c_bulletPacket>& packets) {
     //bullets.clear(); // 기존 총알 데이터 제거
 

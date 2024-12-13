@@ -42,8 +42,6 @@ HANDLE hDialogEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 // 게임 종료
 INT_PTR CALLBACK ResultDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HWND okButton;  // 확인 버튼
-bool gameOver = false;
-HWND hWnd;
 
 extern Client client;
 
@@ -135,12 +133,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     retval = send(sock, (char*)&matchingStart, sizeof(matchingStart), 0);
     if (retval == SOCKET_ERROR) err_display("send - matchingStart");
 
-  
-    // s_initPacket 수신
-    s_initPacket initPacket = {};
-    retval = recv(sock, (char*)&initPacket, sizeof(initPacket), 0);
-    if (retval == SOCKET_ERROR) 
-        err_display("recv - initPacket");
+ 
+    // player 초기화 
+    std::vector<c_playerPacket> recvPlayers(3); // ID 1, 2, 3 데이터
+    for (int i = 0; i < 3; ++i) {
+        retval = recv(sock, (char*)&recvPlayers[i], sizeof(c_playerPacket), MSG_WAITALL);
+        if (retval == SOCKET_ERROR) {
+            err_display("receive - playerPacket");
+            return -1;
+        }
+    }
+    gameframework.players[0]->ID = recvPlayers[0].c_playerID;
+    gameframework.players[1]->ID = recvPlayers[1].c_playerID;
+    gameframework.players[2]->ID = recvPlayers[2].c_playerID;
+
 
     if (!InitInstance(hInstance, nCmdShow))
     {
@@ -208,7 +214,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     hInst = hInstance;
 
-    hWnd = CreateWindowW(
+    HWND hWnd = CreateWindowW(
         lpszClass,
         lpszWindowName,
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, // 이 스타일로 윈도우 크기 조절 비활성화
@@ -275,6 +281,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG2), NULL, ResultDlgProc);
             break;
         }
+
     case WM_KEYUP:
         gameframework.OnKeyBoardProcessing(message, wParam, lParam, sock);
         break;

@@ -33,6 +33,8 @@ struct s_initPacket
 
 struct s_enemyPacket
 {
+	unsigned short s_enemyID;
+	unsigned short s_enemyType;
 	float s_enemyPosX;
 	float s_enemyPosY;
 	unsigned short s_enemyHealth;
@@ -40,17 +42,21 @@ struct s_enemyPacket
 
 struct s_itemPacket
 {
-	//unsigned short s_itemID;
+	unsigned short s_itemID;
 	float s_itemPosX;
 	float s_itemPosY;
-	//unsigned short s_itemType;
+	unsigned short s_itemType;
 };
 
 struct s_bulletPacket
 {
+	float s_playerX;
+	float s_playerY;
+	float s_targetX;
+	float s_targetY;
 	//unsigned short s_bulletID;
-	float s_bulletPosX;
-	float s_bulletPosY;
+	//float s_bulletPosX;
+	//float s_bulletPosY;
 };
 
 struct s_obstaclePacket
@@ -75,10 +81,6 @@ struct s_playerPacket
 	unsigned short s_playerID;
 	float s_playerPosX;
 	float s_playerPosY;
-	float s_playerSpeed;
-	unsigned short s_playerHealth;
-	int s_playerLevel;
-	int s_playerEXP;
 };
 
 struct c_playerPacket
